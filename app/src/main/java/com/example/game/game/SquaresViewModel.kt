@@ -30,7 +30,7 @@ class SquaresViewModel : ViewModel() {
     init {
         val array = ArrayList<SquareData>()
         for (i in 0 until size) {
-            array.add(SquareData(generateColor(), false))
+            array.add(SquareData(generateColor()))
         }
         items.value = array
     }
@@ -44,7 +44,7 @@ class SquaresViewModel : ViewModel() {
     }
 
     fun onViewDroppedFromPlayingField(position: Int) {
-        items.value?.set(position, SquareData(generateColor(), false))
+        items.value?.set(position, SquareData(generateColor()))
         viewDroppedAction.value = position
     }
 
