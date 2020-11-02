@@ -11,6 +11,7 @@ import android.view.DragEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.core.view.setMargins
@@ -24,6 +25,7 @@ import com.example.game.exceptions.SquareDragDataCastException
 import com.example.game.game.ColorFieldViewModel
 import com.example.game.game.SquaresViewModel
 import com.example.game.game.item.SquareDragData
+import com.example.game.views.SelectedSquareView
 
 class BottomFragment : Fragment() {
 
@@ -60,7 +62,7 @@ class BottomFragment : Fragment() {
             colorFieldViewModel.initLevel(level.second)
         })
 
-        colorFieldViewModel.initViewAction.observe(this, Observer { targetColor ->
+        colorFieldViewModel.initTargetColorAction.observe(this, Observer { targetColor ->
             binding.currentColorView.setBackgroundColor(Color.TRANSPARENT)
             binding.targetColorView.setBackgroundColor(targetColor)
             binding.colorsContainer.removeAllViews()
@@ -108,7 +110,7 @@ class BottomFragment : Fragment() {
             }
 
             val view = createSquareView(colorFieldViewModel.lastColor)
-            binding.colorsContainer.addView(view)
+            binding.colorsContainer.addView(view, 0)
             view.alpha = 0f
 
             view.animate().alpha(1f).setDuration(300).start()
@@ -121,15 +123,15 @@ class BottomFragment : Fragment() {
 
     private fun createSquareView(@ColorInt color: Int): View {
         val context = requireContext()
-        val binding = ItemSquareBinding.inflate(LayoutInflater.from(context))
-        val size = context.resources.getDimensionPixelSize(R.dimen.color_preview_item_height)
+        val view = SelectedSquareView(context)
         val margin = context.resources.getDimensionPixelSize(R.dimen.default_margin)
-        val layoutParams = ViewGroup.MarginLayoutParams(size, size)
+        val layoutParams = LinearLayout.LayoutParams(0, 0)
+        layoutParams.weight = 1f
         layoutParams.setMargins(margin)
-        binding.root.layoutParams = layoutParams
-        binding.colorItem.setBackgroundColor(color)
+        view.layoutParams = layoutParams
+        view.setBackgroundColor(color)
 
-        return binding.root
+        return view
     }
 
     override fun onDestroyView() {

@@ -11,7 +11,8 @@ import com.example.game.game.levels.Level
 class ColorFieldViewModel(application: Application) : AndroidViewModel(application) {
 
     private lateinit var level: Level
-    private lateinit var outputColors: List<Int>
+    lateinit var outputColors: List<Int>
+        private set
 
     private val colors = ArrayList<Int>()
     private var prevColor = 0
@@ -22,7 +23,7 @@ class ColorFieldViewModel(application: Application) : AndroidViewModel(applicati
         get() = colors.last()
 
     val colorsChangedAction = MutableLiveData<Pair<Int, Int>>()//selected colors
-    val initViewAction = MutableLiveData<Int>()//target color (value)
+    val initTargetColorAction = MutableLiveData<Int>()//target color (value)
     val levelCompletedAction = MutableLiveData<Level>()
     val levelFailedAction = MutableLiveData<Level>()
 
@@ -39,7 +40,7 @@ class ColorFieldViewModel(application: Application) : AndroidViewModel(applicati
             val color = ContextCompat.getColor(getApplication(), level.outputColorsRes[i])
             targetColor = ColorUtils.blendARGB(color, targetColor, ration)
         }
-        initViewAction.value = targetColor
+        initTargetColorAction.value = targetColor
     }
 
     fun onColorDropped(@ColorRes color: Int) {

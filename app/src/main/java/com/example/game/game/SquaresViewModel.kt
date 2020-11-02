@@ -14,6 +14,7 @@ class SquaresViewModel : ViewModel() {
     val dragAndDropFailedAction = MutableLiveData<Unit>()
     val nextLevelAction = MutableLiveData<Pair<Int, Level>>()
     private var currentLevel = 0
+    private val cache = HashMap<Int, SquareData?>()
 
     private val gameSettings = LevelFactory().create()
     val size: Int
@@ -28,13 +29,23 @@ class SquaresViewModel : ViewModel() {
         return colors[Random.nextInt(0, colors.size)]
     }
 
-    fun getItem(position: Int): SquareData? = SquareData(generateColor())
+    fun getItem(position: Int): SquareData? {
+        if (position >= size) {
+            return null
+        } else {
+            return cache[position] ?: kotlin.run {
+                cache[position] = SquareData(generateColor())
+                cache[position]
+            }
+        }
+    }
 
     fun onItemTouched(position: Int) {
         touchAction.value = position
     }
 
     fun onViewDroppedFromPlayingField(position: Int) {
+        cache[position] = null
         viewDroppedAction.value = position
     }
 

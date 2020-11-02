@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.content.ClipData
+import android.util.Log
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
