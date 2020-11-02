@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">Game</string>
+    <string name="app_name">Color Switch Color</string>
+    <string name="new_game">new game</string>
+    <string name="progress">progress</string>
+    <string name="game_fail">Fail, try again!</string>
+    <string name="game_success">Great, go to next level!</string>
+    <string name="level_n">Level %1$d</string>
 </resources>

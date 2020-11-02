@@ -1,15 +1,19 @@
 package com.example.game.game.fragmens
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.DragEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.ColorInt
-import androidx.core.content.ContextCompat
+import androidx.core.view.setMargins
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -35,7 +39,9 @@ class BottomFragment : Fragment() {
         parentFragment?.let {
             gameViewModel = ViewModelProvider(it)[SquaresViewModel::class.java]
         } ?: throw NullPointerException("see to GameFragment")
-        colorFieldViewModel = ViewModelProvider(this)[ColorFieldViewModel::class.java]
+        colorFieldViewModel =
+            ViewModelProvider.AndroidViewModelFactory(requireActivity().application)
+                .create(ColorFieldViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -49,6 +55,27 @@ class BottomFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        gameViewModel.nextLevelAction.observe(this, Observer { level ->
+            colorFieldViewModel.initLevel(level.second)
+        })
+
+        colorFieldViewModel.initViewAction.observe(this, Observer { targetColor ->
+            binding.currentColorView.setBackgroundColor(Color.TRANSPARENT)
+            binding.targetColorView.setBackgroundColor(targetColor)
+            binding.colorsContainer.removeAllViews()
+        })
+
+        colorFieldViewModel.levelCompletedAction.observe(this, Observer {
+            gameViewModel.onLevelCompleted()
+            Toast.makeText(requireContext(), R.string.game_success, Toast.LENGTH_LONG).show()
+        })
+
+        colorFieldViewModel.levelFailedAction.observe(this, Observer {
+            colorFieldViewModel.initLevel(it)
+            Toast.makeText(requireContext(), R.string.game_fail, Toast.LENGTH_LONG).show()
+        })
+
         binding.root.setOnDragListener { view, dragEvent ->
             try {
                 val state =
@@ -61,9 +88,8 @@ class BottomFragment : Fragment() {
                     DragEvent.ACTION_DRAG_EXITED -> {
                     }
                     DragEvent.ACTION_DROP -> {
+                        colorFieldViewModel.onColorDropped(state.squareData.colorRes)
                         gameViewModel.onViewDroppedFromPlayingField(state.position)
-                        val color = ContextCompat.getColor(view.context, state.squareData.colorRes)
-                        colorFieldViewModel.onColorDropped(color)
                     }
                 }
                 true
@@ -78,26 +104,31 @@ class BottomFragment : Fragment() {
             val animator = ValueAnimator.ofObject(ArgbEvaluator(), pair.first, pair.second)
             animator.addUpdateListener {
                 val color = it.animatedValue as Int
-                binding.colorsContainer.setBackgroundColor(color)
+                binding.currentColorView.setBackgroundColor(color)
             }
 
-            val view = createSquareView(colorFieldViewModel.nextColor)
-            binding.previewColorsContainer.addView(view)
+            val view = createSquareView(colorFieldViewModel.lastColor)
+            binding.colorsContainer.addView(view)
             view.alpha = 0f
 
             view.animate().alpha(1f).setDuration(300).start()
-            animator.setDuration(300).start()
+
+            animator.duration = 300
+            animator.addListener(AnimatorListener())
+            animator.start()
         })
     }
 
     private fun createSquareView(@ColorInt color: Int): View {
-        val context = context!!
+        val context = requireContext()
         val binding = ItemSquareBinding.inflate(LayoutInflater.from(context))
         val size = context.resources.getDimensionPixelSize(R.dimen.color_preview_item_height)
-        val layoutParams = ViewGroup.LayoutParams(size, size)
+        val margin = context.resources.getDimensionPixelSize(R.dimen.default_margin)
+        val layoutParams = ViewGroup.MarginLayoutParams(size, size)
+        layoutParams.setMargins(margin)
         binding.root.layoutParams = layoutParams
-
         binding.colorItem.setBackgroundColor(color)
+
         return binding.root
     }
 
@@ -106,4 +137,10 @@ class BottomFragment : Fragment() {
         super.onDestroyView()
     }
 
+    inner class AnimatorListener : AnimatorListenerAdapter() {
+        override fun onAnimationEnd(animation: Animator?) {
+            super.onAnimationEnd(animation)
+            colorFieldViewModel.onColorChangeAnimationEnded()
+        }
+    }
 }

@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import com.example.game.ContextViewHolder
 import com.example.game.databinding.ItemSquareBinding
 import com.example.game.game.SquaresViewModel
+import com.example.game.game.util.Configurations
 
 @SuppressLint("ClickableViewAccessibility")
 class SquareViewHolder(
@@ -29,13 +30,11 @@ class SquareViewHolder(
         }
 
         val activity = context as AppCompatActivity
-        viewModel.items.observe(activity, Observer {
-            bind()
-        })
 
         viewModel.viewDroppedAction.observe(activity, Observer { position ->
             if (adapterPosition == position) {
                 binding.root.visibility = View.VISIBLE
+                bind()
             }
         })
 

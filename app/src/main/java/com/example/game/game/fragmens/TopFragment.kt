@@ -27,6 +27,7 @@ class TopFragment : Fragment() {
         get() = _binding!!
 
     private lateinit var gameViewModel: SquaresViewModel
+
     private lateinit var adapter: GridAdapter
     private lateinit var layoutManager: GridLayoutManager
 
@@ -50,21 +51,21 @@ class TopFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        adapter = GridAdapter(gameViewModel)
-        layoutManager = GridLayoutManager(context, Configurations.getSpanCount(gameViewModel.size), GridLayoutManager.VERTICAL, false)
+        gameViewModel.nextLevelAction.observe(this, Observer {
+            layoutManager = createLayoutManager()
+            binding.mainRecyclerView.layoutManager = layoutManager
+            adapter = GridAdapter(gameViewModel)
+            binding.mainRecyclerView.adapter = adapter
 
-        binding.mainRecyclerView.let { recycler ->
-            recycler.layoutManager = layoutManager
-            recycler.adapter = adapter
+        })
 
-            gameViewModel.touchAction.observe(this, Observer { position ->
-                findSquareHolder(position)?.startDragAndDrop()
-            })
+        gameViewModel.touchAction.observe(this, Observer { position ->
+            findSquareHolder(position)?.startDragAndDrop()
+        })
 
-            gameViewModel.viewDroppedAction.observe(this, Observer { position ->
-                adapter.notifyItemChanged(position)
-            })
-        }
+        gameViewModel.viewDroppedAction.observe(this, Observer { position ->
+            adapter.notifyItemChanged(position)
+        })
 
         binding.root.setOnDragListener { view, dragEvent ->
             try {
@@ -72,7 +73,6 @@ class TopFragment : Fragment() {
                     dragEvent.localState as? SquareDragData ?: throw SquareDragDataCastException()
                 if (dragEvent.action == DragEvent.ACTION_DROP) {
                     findSquareHolder(state.position)?.getBackAfterDragAndDrop(dragEvent)
-                } else if (dragEvent.action == DragEvent.ACTION_DRAG_ENDED) {
                 }
             } catch (ex: SquareDragDataCastException) {
                 Log.d("TopFragment", "cast exception")
@@ -80,6 +80,15 @@ class TopFragment : Fragment() {
             }
             true
         }
+    }
+
+    private fun createLayoutManager(): GridLayoutManager {
+        return GridLayoutManager(
+            context,
+            Configurations.getSpanCount(gameViewModel.size),
+            GridLayoutManager.VERTICAL,
+            false
+        )
     }
 
     private fun findSquareHolder(position: Int): SquareViewHolder? {
