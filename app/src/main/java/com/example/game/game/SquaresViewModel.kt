@@ -1,5 +1,7 @@
 package com.example.game.game
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.game.game.item.SquareData
@@ -9,18 +11,30 @@ import kotlin.random.Random
 
 class SquaresViewModel : ViewModel() {
 
+    private val storageKey = "GAME_STORAGE"
+    private val levelKey = "levelKey"
+    private lateinit var storage: SharedPreferences
+
+    private var currentLevel: Int
+        get() = storage.getInt(levelKey, 0)
+        set(value) {
+            storage.edit().putInt(levelKey, value).apply()
+        }
+
     val touchAction = MutableLiveData<Int>()
     val viewDroppedAction = MutableLiveData<Int>()
     val dragAndDropFailedAction = MutableLiveData<Unit>()
     val nextLevelAction = MutableLiveData<Pair<Int, Level>>()
-    private var currentLevel = 0
+    val gameCompletedAction = MutableLiveData<Unit>()
+
     private val cache = HashMap<Int, SquareData?>()
 
     private val gameSettings = LevelFactory().create()
     val size: Int
         get() = nextLevelAction.value!!.second.fieldSize
 
-    init {
+    fun init(context: Context) {
+        storage = context.getSharedPreferences(storageKey, Context.MODE_PRIVATE)
         nextLevelAction.value = Pair(currentLevel, gameSettings.levels[currentLevel])
     }
 
@@ -54,7 +68,12 @@ class SquaresViewModel : ViewModel() {
     }
 
     fun onLevelCompleted() {
-        currentLevel++
-        nextLevelAction.value = Pair(currentLevel, gameSettings.levels[currentLevel])
+        if (currentLevel == gameSettings.levels.size - 1) {
+            currentLevel = 0
+            gameCompletedAction.value = Unit
+        } else {
+            currentLevel++
+            nextLevelAction.value = Pair(currentLevel, gameSettings.levels[currentLevel])
+        }
     }
 }

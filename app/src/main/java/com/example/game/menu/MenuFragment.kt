@@ -37,9 +37,6 @@ class MenuFragment : Fragment() {
         binding.playButton.setOnClickListener {
             mainViewModel.onPlayClick()
         }
-        binding.progressButton.setOnClickListener {
-            mainViewModel.onProgressClick()
-        }
     }
 
     override fun onDestroyView() {

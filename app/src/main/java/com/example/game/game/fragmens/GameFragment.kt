@@ -35,6 +35,8 @@ class GameFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        gameViewModel.init(requireContext())
+
         val topFragment = TopFragment()
         val bottomFragment = BottomFragment()
         bottomFragment.setTargetFragment(topFragment, 0)
@@ -46,6 +48,10 @@ class GameFragment : Fragment() {
         gameViewModel.nextLevelAction.observe(this, Observer {
             val level = it.first + 1
             binding.titleTextView.text = getString(R.string.level_n, level)
+        })
+
+        gameViewModel.gameCompletedAction.observe(this, Observer {
+            (activity as? GameListener)?.onGameCompleted()
         })
     }
 

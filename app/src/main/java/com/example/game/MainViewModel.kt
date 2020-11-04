@@ -8,14 +8,8 @@ import com.example.game.game.levels.LevelFactory
 class MainViewModel : ViewModel() {
 
     val playClick = MutableLiveData<Unit>()
-    val progressClick = MutableLiveData<Unit>()
 
     fun onPlayClick() {
         playClick.value = Unit
     }
-
-    fun onProgressClick() {
-        progressClick.value = Unit
-    }
-
 }

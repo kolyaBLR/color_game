@@ -5,4 +5,5 @@
     <string name="game_fail">Fail, try again!</string>
     <string name="game_success">Great, go to next level!</string>
     <string name="level_n">Level %1$d</string>
+    <string name="game_completed">Game completed!</string>
 </resources>

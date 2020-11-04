@@ -6,11 +6,13 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.game.databinding.ActivityMainBinding
+import com.example.game.game.fragmens.CongratsFragment
 import com.example.game.game.fragmens.GameFragment
+import com.example.game.game.fragmens.GameListener
 import com.example.game.menu.MenuFragment
 import com.example.game.progress.ProgressFragment
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), GameListener {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -27,15 +29,10 @@ class MainActivity : AppCompatActivity() {
             .commit()
 
         mainViewModel.playClick.observe(this, Observer { onNewGameClick() })
-        mainViewModel.progressClick.observe(this, Observer { onProgressClick() })
     }
 
     private fun onNewGameClick() {
         replaceFragment(GameFragment(), true)
-    }
-
-    private fun onProgressClick() {
-        replaceFragment(ProgressFragment(), true)
     }
 
     private fun replaceFragment(fragment: Fragment, anim: Boolean) {
@@ -49,5 +46,10 @@ class MainActivity : AppCompatActivity() {
         transaction.replace(binding.root.id, fragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    override fun onGameCompleted() {
+        onBackPressed()
+        CongratsFragment().show(supportFragmentManager, null)
     }
 }
