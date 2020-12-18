@@ -4,16 +4,16 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.DragEvent
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.ColorInt
+import androidx.core.graphics.component1
+import androidx.core.graphics.component2
 import androidx.core.view.setMargins
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -26,6 +26,9 @@ import com.example.game.game.ColorFieldViewModel
 import com.example.game.game.SquaresViewModel
 import com.example.game.game.item.SquareDragData
 import com.example.game.views.SelectedSquareView
+import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class BottomFragment : Fragment() {
 
@@ -55,8 +58,39 @@ class BottomFragment : Fragment() {
         return binding.root
     }
 
+    fun calculate(p1: Float, p2: Float): Float {
+        return abs(p1 - p2).pow(2)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        binding.root.setOnTouchListener { view, event ->
+            if (event.action == MotionEvent.ACTION_MOVE && event.pointerCount > 1 && event.historySize > 0) {
+                val startRange = sqrt(
+                    calculate(event.getHistoricalX(0, 0), event.getHistoricalX(1, 0)) +
+                            calculate(event.getHistoricalY(0, 0), event.getHistoricalY(1, 0))
+                )
+                val currentRange = sqrt(
+                    calculate(event.getX(0), event.getX(1)) +
+                            calculate(event.getY(0), event.getY(1))
+                )
+                val viewSize = sqrt(
+                    (view.width * view.width).toFloat() +
+                            (view.height * view.height)
+                )
+                val scale = (currentRange - startRange) / viewSize
+                view.scaleY += scale
+                view.scaleX += scale
+            } else if (
+                event.action == MotionEvent.ACTION_CANCEL ||
+                event.action == MotionEvent.ACTION_UP
+            ) {
+                view.runScaleAnimation(1f)
+            }
+            return@setOnTouchListener true
+        }
 
         gameViewModel.nextLevelAction.observe(this, Observer { level ->
             colorFieldViewModel.initLevel(level.second)
@@ -119,6 +153,14 @@ class BottomFragment : Fragment() {
             animator.addListener(AnimatorListener())
             animator.start()
         })
+    }
+
+    private fun View.runScaleAnimation(to: Float) {
+        this.animate()
+            .scaleX(to)
+            .scaleY(to)
+            .setDuration(300)
+            .start()
     }
 
     private fun createSquareView(@ColorInt color: Int): View {
